@@ -1,21 +1,22 @@
-const Path = require("path");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
-const CleanWebpackPlugin = require('clean-webpack-plugin');
-const ExtractTextPlugin = require("extract-text-webpack-plugin");
+const path = require("path");
+const HtmlWebpackPlugin = require("html-webpack-Plugin");
+const CleanWebpackPlugin = require('clean-webpack-Plugin');
+const ExtractTextPlugin = require("extract-text-webpack-Plugin");
+const AddAssetHtmlPlugin = require('add-asset-html-webpack-Plugin');
 const webpack = require("webpack");
 
 module.exports = {
     entry: {
-        index: Path.resolve(__dirname, "src/main.js")
+        index: path.resolve(__dirname, "src/main.js")
     },
     output: {
-        path: Path.resolve(__dirname, "dist"),
+        path: path.resolve(__dirname, "dist"),
         filename: "[name]_bundle.js?v=[chunkhash:8]"
     },
     module: {
         loaders: [{
             test: /\.vue$/,
-            include: Path.resolve(__dirname, "src"),
+            include: path.resolve(__dirname, "src"),
             loader: "vue-loader"
         }, {
             test: /\.css$/,
@@ -27,11 +28,11 @@ module.exports = {
         }, {
             test: /\.js$/,
             loader: "babel-loader",
-            include: Path.resolve(__dirname, "src")
+            include: path.resolve(__dirname, "src")
         }, {
             test: /\.(jpg|gif|svg|png|ttf)$/,
             loader: "url-loader",
-            include: Path.resolve(__dirname, "src"),
+            include: path.resolve(__dirname, "src"),
             options: {
                 limit: 409600,
                 name: "[name].[ext]"
@@ -45,21 +46,24 @@ module.exports = {
         }
     },
     plugins: [
+        new CleanWebpackPlugin(['dist']),
         new ExtractTextPlugin({
-            filename: (getPath) => {
-                return getPath('css/[name].css?v=[contenthash:8]');
+            filename: (getpath) => {
+                return getpath('css/[name].css?v=[contenthash:8]');
             },
             allChunks: true
         }),
-        new CleanWebpackPlugin(['dist']),
+        new webpack.DllReferencePlugin({
+            context: path.join(__dirname),
+            manifest: require("./common/manifest.json")
+        }),
         new HtmlWebpackPlugin({
             filename: "index.html",
-            template: Path.resolve(__dirname, "src/index.html"),
+            template: path.resolve(__dirname, "src/index.html"),
             inject: true
         }),
-        new webpack.DllReferencePlugin({
-            context: Path.join(__dirname, "./", "common"),
-            manifest: require("./common/manifest.json")
+        new AddAssetHtmlPlugin({
+            filepath: path.resolve(__dirname, './common/*.dll.js')
         })
     ]
 }
